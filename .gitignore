@@ -1,0 +1,33 @@
+# Basic folders
+node_modules/
+.vscode/*
+.idea/*
+
+# Compiled code
+declarations/
+buiild/
+docs/
+dist/
+out/
+*.js
+
+# Logs
+logs/
+log/
+*.log
+
+# Certificates
+certs/
+
+# Excludes
+!.eslintrc.js
+!.prettierrc.js
+!.idea/copyright/
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.run/
+
+# hide my private examples
+example/_*
+src/_*

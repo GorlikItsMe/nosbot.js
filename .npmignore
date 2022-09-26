@@ -1,0 +1,11 @@
+node_modules/
+.github/
+.vscode/
+.idea/
+logs/
+src/
+declarations/
+
+.prettierrc.js
+.eslintrc.js
+*.log
