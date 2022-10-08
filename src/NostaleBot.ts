@@ -29,6 +29,9 @@ interface nosbotConfig {
         byId?: number;
         byName?: string;
     };
+    extra?: {
+        nosvoidPin?: string;
+    };
 }
 
 type BotModeType = "auth" | "character_select";
@@ -162,8 +165,10 @@ export class NostaleBot extends EventEmitter {
         /* #endregion */
 
         // nosvoid check pin
-        if (packet == "guri 10 4 0 1") {
-            this.sendPacket("guri 4 4 0 0 123456789");
+        if (this.config.extra?.nosvoidPin) {
+            if (packet == "guri 10 4 0 1") {
+                this.sendPacket(`guri 4 4 0 0 ${this.config.extra.nosvoidPin}`);
+            }
         }
     }
 
