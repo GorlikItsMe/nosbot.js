@@ -31,3 +31,5 @@ certs/
 # hide my private examples
 example/_*
 src/_*
+
+.env
