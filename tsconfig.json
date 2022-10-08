@@ -13,7 +13,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "downlevelIteration": true,
-    "sourceMap": true
+    "removeComments": true,
+    "declaration": true
   },
   "include": [
     "src/**/*.ts"

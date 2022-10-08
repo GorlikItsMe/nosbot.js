@@ -1,1 +1,2 @@
-import { NostaleBot } from "./NostaleBot";
+export { NostaleBot } from "./NostaleBot";
+export * from "./NostaleBot";
