@@ -12,7 +12,7 @@ yarn add @gorlikitsme/nosbot.js
 
 ## Example Usage
 
-TODO
+Check `examples` folder
 
 ## Credits
 
