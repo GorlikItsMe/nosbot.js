@@ -35,8 +35,6 @@
     "typescript": "^4.8.2"
   },
   "dependencies": {
-    "@zakku/gf-login": "^3.0.2",
-    "dll-inject": "^0.0.1",
     "iconv-lite": "^0.6.3",
     "openssl": "^2.0.0",
     "promise-socket": "^7.0.0",
