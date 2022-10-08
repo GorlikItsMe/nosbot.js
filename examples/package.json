@@ -1,0 +1,15 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "simplebot": "ts-node simple-bot.ts"
+  },
+  "dependencies": {
+    "@gorlikitsme/nosbot.js": "^0.0.2",
+    "@zakku/gf-login": "^3.0.2",
+    "dotenv": "^16.0.3",
+    "ts-node": "^10.9.1"
+  }
+}
