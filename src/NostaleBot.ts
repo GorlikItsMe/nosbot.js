@@ -1,14 +1,10 @@
 import EventEmitter from "events";
+import { generateEmojiPacket, NostaleEmoji } from "./features/emoji";
 import { createLogger } from "./logger";
 import { TcpClientManager } from "./TcpClient/TcpClientManager";
+import { sleep } from "./utils/sleep";
 
 const logger = createLogger("Core");
-
-const sleep = async (milliseconds: number) => {
-    await new Promise((resolve) => {
-        return setTimeout(resolve, milliseconds);
-    });
-};
 
 interface nosbotConfig {
     auth: {
@@ -34,7 +30,7 @@ interface nosbotConfig {
     };
 }
 
-type BotModeType = "auth" | "character_select";
+type BotStage = "auth" | "character_select";
 interface Character {
     id: number;
     name: string;
@@ -45,8 +41,12 @@ export class NostaleBot extends EventEmitter {
     tcpClient: TcpClientManager;
     pulseInterval?: NodeJS.Timer;
 
-    mode: BotModeType = "auth";
+    currentStage: BotStage = "auth";
     characterList: Character[] = [];
+    currentCharacter = {
+        name: "",
+        id: 0,
+    };
 
     constructor(nosbotConfig: nosbotConfig) {
         super();
@@ -56,7 +56,7 @@ export class NostaleBot extends EventEmitter {
 
     // Main method to start bot
     public async login(): Promise<void> {
-        this.mode = "auth";
+        this.currentStage = "auth";
         if (this.config.auth.type == "priv") {
             const loginServer = this.config.loginServer;
             const worldServer = this.config.worldServer;
@@ -145,6 +145,10 @@ export class NostaleBot extends EventEmitter {
         return this.tcpClient.sendPacket(packet);
     }
 
+    public useEmoji(emojiId: NostaleEmoji): void {
+        this.sendPacket(generateEmojiPacket(this.currentCharacter.id, emojiId));
+    }
+
     public close(): void {
         this.tcpClient.destroy();
         clearInterval(this.pulseInterval);
@@ -154,8 +158,8 @@ export class NostaleBot extends EventEmitter {
     // obsługa wewnętrzenej logiki, kim ja jestem, gdzie jestem, co widze itd żeby móc łatwo później odczytywać to używając api bota
     private buildInPacketHandle(packet: string) {
         /* #region Character select screan */
-        if (this.mode == "auth" && packet == "clist_start 0") {
-            this.mode = "character_select";
+        if (this.currentStage == "auth" && packet == "clist_start 0") {
+            this.currentStage = "character_select";
             this.characterList = [];
         }
         if (packet.startsWith("clist ")) {
@@ -169,6 +173,16 @@ export class NostaleBot extends EventEmitter {
             if (packet == "guri 10 4 0 1") {
                 this.sendPacket(`guri 4 4 0 0 ${this.config.extra.nosvoidPin}`);
             }
+        }
+
+        //
+        if (packet.startsWith("c_info ")) {
+            // c_info Killrog - -1 1.918 FamilyName 14187 2 0 0 2 3 14 500 0 0 20 0 0 0 0
+            const p = packet.split(" ");
+            this.currentCharacter = {
+                name: p[1],
+                id: parseInt(p[6]),
+            };
         }
     }
 

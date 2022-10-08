@@ -2,7 +2,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import { NostaleBot } from "@gorlikitsme/nosbot.js";
+import { NostaleBot, NostaleEmoji } from "@gorlikitsme/nosbot.js";
 const bot = new NostaleBot({
     auth: {
         type: "priv",
@@ -30,6 +30,7 @@ bot.on("in", (packet) => {
     if (p[1] == "1") {
         // player
         console.log(`On map you see player with name ${p[2]} id: ${p[4]}`);
+        bot.useEmoji(NostaleEmoji.AltW);
     }
 });
 bot.login();

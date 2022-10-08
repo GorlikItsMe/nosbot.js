@@ -1,2 +1,2 @@
 export { NostaleBot } from "./NostaleBot";
-export * from "./NostaleBot";
+export { NostaleEmoji } from "./features/emoji";
