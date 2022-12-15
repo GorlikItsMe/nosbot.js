@@ -9,7 +9,6 @@ const bot = new NostaleBot({
         login: process.env.AUTH_LOGIN!,
         password: process.env.AUTH_PASSWORD!,
     },
-    installationId: process.env.INSTALLATION_ID!,
     loginServer: {
         ip: process.env.LOGIN_SERVER_IP!,
         port: parseInt(process.env.LOGIN_SERVER_PORT!),
@@ -17,6 +16,12 @@ const bot = new NostaleBot({
     worldServer: {
         ip: process.env.WORLD_SERVER_IP!,
         port: parseInt(process.env.WORLD_SERVER_PORT!),
+    },
+    game: {
+        installationId: process.env.INSTALLATION_ID!,
+        nostaleClientXVersion: "0.9.3.3087",
+        nostaleClientXMd5Hash: "x",
+        nostaleClientMd5Hash: "x",
     },
 });
 bot.on("tit", (packet) => {

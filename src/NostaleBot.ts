@@ -1,32 +1,55 @@
 import EventEmitter from "events";
 import { generateEmojiPacket, NostaleEmoji } from "./features/emoji";
 import { createLogger } from "./logger";
+import { pickWorldServer, selectCharacter, sendLoginPacket } from "./modules/login";
+import { parseNsTestPacket } from "./PacketHandler/nstest";
 import { TcpClientManager } from "./TcpClient/TcpClientManager";
+import { createLoginPacketPrivServer } from "./utils/createLoginPacket";
+import { failcToString } from "./utils/failcToString";
 import { sleep } from "./utils/sleep";
 
-const logger = createLogger("Core");
+const logger = createLogger("NostaleBot");
 
 interface nosbotConfig {
-    auth: {
-        type: "priv";
-        login: string;
-        password: string;
-    };
-    installationId: string;
+    auth:
+        | {
+              type: "priv";
+              login: string;
+              password: string;
+          }
+        | {
+              type: "custom";
+              customLoginPacket: string;
+              login: string;
+              password: string;
+          };
     loginServer: {
         ip: string;
         port: number;
     };
-    worldServer: {
-        ip: string;
-        port: number;
-    };
-    selectCharacter?: {
-        byId?: number;
-        byName?: string;
-    };
+    worldServer:
+        | {
+              channelId: number;
+          }
+        | {
+              ip: string;
+              port: number;
+          };
+    selectCharacter?:
+        | {
+              byId: number;
+          }
+        | {
+              byName: string;
+          };
     extra?: {
         nosvoidPin?: string;
+    };
+    game: {
+        installationId: "00000000-0000-0000-0000-000000000000" | string;
+        nostaleClientXVersion: "0.9.3.3087" | string;
+        nostaleClientXMd5Hash: string;
+        nostaleClientMd5Hash: string;
     };
 }
 
@@ -48,6 +71,8 @@ export class NostaleBot extends EventEmitter {
         id: 0,
     };
 
+    _sendMiddleware = (packet: string) => packet;
+
     constructor(nosbotConfig: nosbotConfig) {
         super();
         this.config = nosbotConfig;
@@ -57,92 +82,77 @@ export class NostaleBot extends EventEmitter {
     // Main method to start bot
     public async login(): Promise<void> {
         this.currentStage = "auth";
-        if (this.config.auth.type == "priv") {
-            const loginServer = this.config.loginServer;
-            const worldServer = this.config.worldServer;
 
-            logger.info(`Connecting to LoginServer...`);
-            await this.tcpClient.connect(loginServer.ip, loginServer.port);
-            logger.info(`Connected!`);
+        // connect to login server
+        const loginServer = this.config.loginServer;
 
-            this.tcpClient.sendLoginPacket(
-                this.config.auth.login,
-                this.config.auth.password,
-                this.config.installationId
-            );
-            const nstestPacket = await this.tcpClient.packetHandler.waitForFirstPacket();
+        logger.info(`Connecting to LoginServer...`);
+        await this.tcpClient.connect(loginServer.ip, loginServer.port);
+        logger.info(`Connected!`);
 
-            if (nstestPacket.startsWith("failc")) {
-                this.tcpClient.destroy(); // close
-                logger.error(`${nstestPacket}`); // error failc
-                return;
-            }
+        // send login packet
+        sendLoginPacket(this);
+
+        // wait for response, and handle that response
+        const nstestPacket = await this.tcpClient.packetHandler.waitForFirstPacket();
+
+        if (nstestPacket.startsWith("failc")) {
             this.tcpClient.destroy(); // close
-
-            // deserialize NsTeST
-            const p = nstestPacket.split(" ");
-            const login = p[2];
-            const sessionId = parseInt(p[75]);
-
-            logger.debug(`login: ${login}; sessionId: ${sessionId}`);
-            await sleep(1000);
-
-            // connect to world server
-            logger.debug("============= WORLD =============");
-            this.tcpClient = new TcpClientManager(sessionId);
-            logger.info(`Connecting to WorldServer...`);
-            await this.tcpClient.connect(worldServer.ip, worldServer.port);
-            logger.info(`Connected!`);
-
-            this.tcpClient.sendPacket(`${sessionId}`);
-            await sleep(500);
-            this.tcpClient.sendPacket(`${this.config.auth.login} ORG 0`);
-            this.tcpClient.sendPacket(`${this.config.auth.password}`);
-
-            // Create packet Handler and publish it
-            await this.tcpClient.packetHandler.on("packet_recv", (packetraw: string) => {
-                const p = packetraw.split(" ");
-                this.emit("packet_recv", packetraw);
-                this.emit(p[0], packetraw);
-                this.buildInPacketHandle(packetraw);
-            });
-            this.startPulseThread();
-
-            logger.debug("============= Character Select =============");
-            await this.tcpClient.packetHandler.waitForPacket("clist_end");
-
-            const charById = this.characterList.find(
-                (a) => a.id === this.config.selectCharacter?.byId
-            );
-            const charByName = this.characterList.find(
-                (a) =>
-                    a.name.toLowerCase() ===
-                    (this.config.selectCharacter?.byName ?? "").toLowerCase()
-            );
-            if (charById) {
-                this.sendPacket(`select ${charById.id}`);
-            } else if (charByName) {
-                this.sendPacket(`select ${charByName.id}`);
-            } else {
-                logger.warn(
-                    "You have not selected a character to log. I will choose the first one"
-                );
-                this.sendPacket(`select ${this.characterList[0].id}`);
-            }
-
-            // wait for OK and start everything
-            this.tcpClient.packetHandler.waitForPacket("OK").then(() => {
-                logger.info("* Welcome You are now in game *");
-                this.sendPacket("game_start");
-                this.sendPacket("lbs 0");
-                this.sendPacket("c_close 1");
-                this.sendPacket("npinfo 0");
-            });
+            logger.debug(`${nstestPacket}`); // error failc
+            logger.error(failcToString(nstestPacket));
+            return;
         }
+        this.tcpClient.destroy(); // close
+
+        // deserialize NsTeST
+        const nstest = parseNsTestPacket(nstestPacket);
+        const sessionId = nstest.sessionId;
+        logger.debug(`login: ${nstest.name}; sessionId: ${sessionId}`);
+        await sleep(1000);
+
+        // connect to world server
+        logger.debug("============= WORLD =============");
+        this.tcpClient = new TcpClientManager(sessionId);
+        const [channelIp, channelPort] = pickWorldServer(this, nstest);
+        await this.tcpClient.connect(channelIp, channelPort);
+        logger.info(`Connected!`);
+
+        // Authorize to world
+        this.tcpClient.sendPacket(`${sessionId}`);
+        await sleep(500);
+        this.tcpClient.sendPacket(`${this.config.auth.login} ORG 0`);
+        this.tcpClient.sendPacket(`${this.config.auth.password}`);
+
+        // Create packet Handler and publish it
+        await this.tcpClient.packetHandler.on("packet_recv", (packetraw: string) => {
+            const p = packetraw.split(" ");
+            this.emit("packet_recv", packetraw);
+            this.emit(p[0], packetraw);
+            this.internalPacketHandle(packetraw);
+        });
+        this.startPulseThread();
+
+        // select character
+        logger.debug("============= Character Select =============");
+        await this.tcpClient.packetHandler.waitForPacket("clist_end");
+        this.sendPacket(`select ${selectCharacter(this)}`);
+
+        // wait for OK and start everything
+        this.tcpClient.packetHandler.waitForPacket("OK").then(() => {
+            logger.info("* Welcome You are now in game *");
+            this.sendPacket("game_start");
+            this.sendPacket("lbs 0");
+            this.sendPacket("c_close 1");
+            this.sendPacket("npinfo 0");
+        });
+    }
+
+    public setSendMiddleware(fn: (packet: string) => string) {
+        this._sendMiddleware = fn;
     }
 
     public sendPacket(packet: string): void {
-        return this.tcpClient.sendPacket(packet);
+        return this.tcpClient.sendPacket(this._sendMiddleware(packet));
     }
 
     public useEmoji(emojiId: NostaleEmoji): void {
@@ -151,12 +161,12 @@ export class NostaleBot extends EventEmitter {
 
     public close(): void {
         this.tcpClient.destroy();
-        clearInterval(this.pulseInterval);
+        this.stopPulseThread();
     }
 
     // obsługa pakietów przez bota
     // obsługa wewnętrzenej logiki, kim ja jestem, gdzie jestem, co widze itd żeby móc łatwo później odczytywać to używając api bota
-    private buildInPacketHandle(packet: string) {
+    private internalPacketHandle(packet: string) {
         /* #region Character select screan */
         if (this.currentStage == "auth" && packet == "clist_start 0") {
             this.currentStage = "character_select";
@@ -192,5 +202,8 @@ export class NostaleBot extends EventEmitter {
             this.sendPacket(`pulse ${pulseSek}`);
             pulseSek += 60;
         }, 60000);
+    }
+    private stopPulseThread() {
+        clearInterval(this.pulseInterval);
     }
 }

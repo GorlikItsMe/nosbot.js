@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "simplebot": "ts-node simple-bot.ts"
+    "simplebot": "ts-node simple-bot.ts",
+    "followme": "ts-node follow-me.ts"
   },
   "dependencies": {
     "@gorlikitsme/nosbot.js": "../dist/",

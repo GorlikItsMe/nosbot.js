@@ -1,6 +1,5 @@
 import Net from "node:net";
 import { PromiseSocket } from "promise-socket";
-import { createLoginPacketPrivServer } from "../utils/createLoginPacket";
 import nosCrypto from "../nostaleCryptography";
 import { encodeStream, decodeStream } from "iconv-lite";
 import { pipeline } from "node:stream";
@@ -23,7 +22,7 @@ export class TcpClientManager {
     private encodingStream: NodeJS.ReadWriteStream;
     private decodingStream: NodeJS.ReadWriteStream;
 
-    constructor(sessionId?: number) {
+    constructor(sessionId?: number, onClose?: () => void) {
         this.socket = new Net.Socket();
         this.client = new PromiseSocket(this.socket);
 
@@ -34,6 +33,9 @@ export class TcpClientManager {
 
         this.client.socket.on("close", () => {
             logger.debug("socket closed");
+            if (onClose) {
+                onClose();
+            }
         });
     }
 
@@ -79,20 +81,5 @@ export class TcpClientManager {
 
     public sendPacket(data: string): void {
         this.packetHandler.emit("packet_send", data);
-    }
-
-    public sendLoginPacket(login: string, password: string, installationId: string): void {
-        const nostaleClientXHash = "a";
-        const nostaleClientHash = "b";
-        const nostaleClientXVersion = "0.9.3.3087";
-        const packet = createLoginPacketPrivServer(
-            login,
-            password,
-            installationId,
-            nostaleClientXHash,
-            nostaleClientHash,
-            nostaleClientXVersion
-        );
-        return this.sendPacket(packet);
     }
 }
