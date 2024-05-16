@@ -16,11 +16,11 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "build": "yarn build:source && yarn build:declarations",
+    "build": "npm run build:source && npm run build:declarations",
     "build:source": "rimraf dist/ && tsc -p tsconfig.json",
     "build:declarations": "rimraf declarations/ && tsc -p tsconfig.json --declaration --declarationMap --declarationDir declarations/",
     "lint": "eslint src/**/*.ts",
-    "prepublishOnly": "yarn lint && yarn build"
+    "prepublishOnly": "npm run lint && npm run build"
   },
   "devDependencies": {
     "@types/node": "^18.7.16",

@@ -62,7 +62,7 @@ interface Character {
 export class NostaleBot extends EventEmitter {
     config: nosbotConfig;
     tcpClient: TcpClientManager;
-    pulseInterval?: NodeJS.Timer;
+    pulseInterval?: NodeJS.Timeout;
 
     currentStage: BotStage = "auth";
     characterList: Character[] = [];

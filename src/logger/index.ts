@@ -13,7 +13,6 @@ const consoleFormat = combine(
     align(),
     {
         transform: (info: winston.Logform.TransformableInfo, opts: any) => {
-            // @ts-expect-error Dont mark as error info[Symbol.for("splat")]
             const args = info[Symbol.for("splat")];
             if (args) {
                 info.message = util.format(info.message, ...args);
@@ -36,7 +35,6 @@ const fileFormat = combine(
     align(),
     {
         transform: (info: winston.Logform.TransformableInfo, opts: any) => {
-            // @ts-expect-error Dont mark as error info[Symbol.for("splat")]
             const args = info[Symbol.for("splat")];
             if (args) {
                 info.message = util.format(info.message, ...args);
