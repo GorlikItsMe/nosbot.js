@@ -64,7 +64,7 @@ export class TcpClientManager {
                 this.encodingStream.write(packet);
             });
             this.decodingStream.on("data", (packet) => {
-                this.packetHandler.emit("packet_recv", packet);
+                this.packetHandler.emit("packet_recv", packet.trimEnd());
             });
         });
     }
