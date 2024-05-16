@@ -25,3 +25,17 @@ export function createLoginPacketPrivServer(
     const rand2 = randomString(8, "1234567890ABCDEF");
     return `NoS0575 ${rand} ${login} ${passwordHash} ${installationId} ${rand2} 0${c}${nostaleClientXVersion} 0 ${md5Hash}`;
 }
+
+/** NoS0577 */
+export function createLoginPacketNos0577(
+    token: string,
+    installationId: string,
+    nostaleClientXHash: string,
+    nostaleClientHash: string,
+    nostaleClientXVersion: string
+) {
+    const md5Hash = md5(nostaleClientXHash.toUpperCase() + nostaleClientHash.toUpperCase());
+    const rand2 = randomString(8, "1234567890ABCDEF");
+    const c = String.fromCharCode(0xb);
+    return `NoS0577 ${token}  ${installationId} ${rand2} 0${c}${nostaleClientXVersion} 0 ${md5Hash}`;
+}
