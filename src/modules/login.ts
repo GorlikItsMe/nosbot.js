@@ -1,7 +1,6 @@
 import { createLogger } from "../logger";
 import { type NostaleBot } from "../NostaleBot";
 import { PacketNsTeST, PacketNsTeST_Channel } from "../PacketHandler/nstest";
-import { TcpClientManager } from "../TcpClient/TcpClientManager";
 import {
     createLoginPacketNos0577,
     createLoginPacketPrivServer,
@@ -9,7 +8,7 @@ import {
 
 const logger = createLogger("NostaleBot");
 
-export function sendLoginPacket(bot: NostaleBot) {
+export function sendLoginPacket(bot: NostaleBot): void {
     if (bot.config.auth.type == "priv") {
         const packet = createLoginPacketPrivServer(
             bot.config.auth.login,

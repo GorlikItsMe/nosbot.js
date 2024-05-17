@@ -33,7 +33,7 @@ export function createLoginPacketNos0577(
     nostaleClientXHash: string,
     nostaleClientHash: string,
     nostaleClientXVersion: string
-) {
+): string {
     const md5Hash = md5(nostaleClientXHash.toUpperCase() + nostaleClientHash.toUpperCase());
     const rand2 = randomString(8, "1234567890ABCDEF");
     const c = String.fromCharCode(0xb);

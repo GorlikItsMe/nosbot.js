@@ -10,6 +10,6 @@ module.exports = {
         "plugin:prettier/recommended",
     ],
     rules: {
-        'ts-expect-error': 'allow-with-description',
-    },
+        "@typescript-eslint/ban-ts-comment": "off"
+    }
 };
