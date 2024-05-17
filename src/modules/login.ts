@@ -1,12 +1,14 @@
 import { createLogger } from "../logger";
 import { type NostaleBot } from "../NostaleBot";
 import { PacketNsTeST, PacketNsTeST_Channel } from "../PacketHandler/nstest";
-import { TcpClientManager } from "../TcpClient/TcpClientManager";
-import { createLoginPacketPrivServer } from "../utils/createLoginPacket";
+import {
+    createLoginPacketNos0577,
+    createLoginPacketPrivServer,
+} from "../utils/createLoginPacket";
 
 const logger = createLogger("NostaleBot");
 
-export function sendLoginPacket(bot: NostaleBot) {
+export function sendLoginPacket(bot: NostaleBot): void {
     if (bot.config.auth.type == "priv") {
         const packet = createLoginPacketPrivServer(
             bot.config.auth.login,
@@ -19,6 +21,15 @@ export function sendLoginPacket(bot: NostaleBot) {
         return bot.sendPacket(packet);
     } else if (bot.config.auth.type == "custom") {
         bot.sendPacket(bot.config.auth.customLoginPacket);
+    } else if (bot.config.auth.type == "NoS0577_with_token") {
+        const packet = createLoginPacketNos0577(
+            bot.config.auth.token,
+            bot.config.game.installationId,
+            bot.config.game.nostaleClientXMd5Hash,
+            bot.config.game.nostaleClientMd5Hash,
+            bot.config.game.nostaleClientXVersion
+        );
+        return bot.sendPacket(packet);
     } else {
         throw new Error(`Not implemented, login for bot auth.type`);
     }

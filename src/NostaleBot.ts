@@ -18,6 +18,12 @@ interface nosbotConfig {
               password: string;
           }
         | {
+              type: "NoS0577_with_token";
+              token: string;
+              login: string;
+              languageId?: number;
+          }
+        | {
               type: "custom";
               customLoginPacket: string;
               login: string;
@@ -62,7 +68,7 @@ interface Character {
 export class NostaleBot extends EventEmitter {
     config: nosbotConfig;
     tcpClient: TcpClientManager;
-    pulseInterval?: NodeJS.Timer;
+    pulseInterval?: NodeJS.Timeout;
 
     currentStage: BotStage = "auth";
     characterList: Character[] = [];
@@ -120,12 +126,18 @@ export class NostaleBot extends EventEmitter {
         // Authorize to world
         this.tcpClient.sendPacket(`${sessionId}`);
         await sleep(500);
-        this.tcpClient.sendPacket(`${this.config.auth.login} ORG 0`);
-        this.tcpClient.sendPacket(`${this.config.auth.password}`);
+        if (this.config.auth.type == "NoS0577_with_token") {
+            const langId = this.config.auth.languageId || 0;
+            this.tcpClient.sendPacket(`${this.config.auth.login} GF ${langId}`);
+            this.tcpClient.sendPacket(`thisisgfmode`);
+        } else {
+            this.tcpClient.sendPacket(`${this.config.auth.login} ORG 0`);
+            this.tcpClient.sendPacket(`${this.config.auth.password}`);
+        }
 
         // Create packet Handler and publish it
-        await this.tcpClient.packetHandler.on("packet_recv", (packetraw: string) => {
-            const p = packetraw.split(" ");
+        this.tcpClient.packetHandler.on("packet_recv", (packetraw: string) => {
+            const p = packetraw.split(" ", 1);
             this.emit("packet_recv", packetraw);
             this.emit(p[0], packetraw);
             this.internalPacketHandle(packetraw);

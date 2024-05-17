@@ -14,10 +14,13 @@ export interface PacketNsTeST_Channel {
 }
 
 export function parseNsTestPacket(packet: string): PacketNsTeST {
+    packet = packet.replace("  ", " "); // Fix NsTest packet where is double space
+
     const p = packet.split(" ");
     const name = p[2];
-    const sessionId = parseInt(p[75]);
-    const channels = p.slice(76, -1);
+    const sessionIdPosition = 76;
+    const sessionId = parseInt(p[sessionIdPosition]);
+    const channels = p.slice(sessionIdPosition + 1, -1);
     return {
         name: name,
         sessionId: sessionId,
