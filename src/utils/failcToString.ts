@@ -33,5 +33,5 @@ export function failcToString(failcPacket: string): string {
         // @ts-ignore: id is checked above
         return strings[id];
     }
-    throw new Error("Unknown failc id");
+    throw new Error(`Unknown failc id in packet "${failcPacket}"`);
 }

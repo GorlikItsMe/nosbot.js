@@ -56,6 +56,7 @@ export default class DecryptLoginStream extends Transform {
             currentByte = packet[index++];
 
             if (currentByte === 0x19) {
+                currentEncryptedPacket.push(currentByte);
                 // packet end, send what i have
                 this.push(decrypt(Buffer.from(currentEncryptedPacket)));
                 currentEncryptedPacket = [];
