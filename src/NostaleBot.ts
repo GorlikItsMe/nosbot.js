@@ -4,7 +4,6 @@ import { createLogger } from "./logger";
 import { pickWorldServer, selectCharacter, sendLoginPacket } from "./modules/login";
 import { parseNsTestPacket } from "./PacketHandler/nstest";
 import { TcpClientManager } from "./TcpClient/TcpClientManager";
-import { createLoginPacketPrivServer } from "./utils/createLoginPacket";
 import { failcToString } from "./utils/failcToString";
 import { sleep } from "./utils/sleep";
 
@@ -77,7 +76,7 @@ export class NostaleBot extends EventEmitter {
         id: 0,
     };
 
-    _sendMiddleware = (packet: string) => packet;
+    _sendMiddleware = (packet: string): string => packet;
 
     constructor(nosbotConfig: nosbotConfig) {
         super();
@@ -159,7 +158,7 @@ export class NostaleBot extends EventEmitter {
         });
     }
 
-    public setSendMiddleware(fn: (packet: string) => string) {
+    public setSendMiddleware(fn: (packet: string) => string): void {
         this._sendMiddleware = fn;
     }
 
