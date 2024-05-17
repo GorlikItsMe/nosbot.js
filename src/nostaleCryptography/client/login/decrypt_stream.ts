@@ -29,7 +29,6 @@ export default class DecryptLoginStream extends Transform {
     }
 
     _transform(packet: Buffer, _: BufferEncoding, callback: TransformCallback): void {
-        console.log("DecryptLoginStream.transform called!");
         if (!Buffer.isBuffer(packet)) {
             callback(
                 new TypeError("The first argument must be a login encrypted packet buffer.")
