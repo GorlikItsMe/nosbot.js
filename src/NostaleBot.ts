@@ -137,7 +137,7 @@ export class NostaleBot extends EventEmitter {
 
         // Create packet Handler and publish it
         this.tcpClient.packetHandler.on("packet_recv", (packetraw: string) => {
-            const p = packetraw.split(" ");
+            const p = packetraw.split(" ", 1);
             this.emit("packet_recv", packetraw);
             this.emit(p[0], packetraw);
             this.internalPacketHandle(packetraw);
