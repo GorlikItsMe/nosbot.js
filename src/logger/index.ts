@@ -8,7 +8,7 @@ const LOG_PATH = process.env.LOG_PATH || "logs";
 const consoleFormat = combine(
     colorize({ all: true }),
     timestamp({
-        format: "YYYY-MM-DD hh:mm:ss.SSS",
+        format: "YYYY-MM-DD HH:mm:ss.SSS",
     }),
     align(),
     {
@@ -30,7 +30,7 @@ const consoleFormat = combine(
 
 const fileFormat = combine(
     timestamp({
-        format: "YYYY-MM-DD hh:mm:ss.SSS",
+        format: "YYYY-MM-DD HH:mm:ss.SSS",
     }),
     align(),
     {
