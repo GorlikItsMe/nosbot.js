@@ -34,6 +34,7 @@ interface nosbotConfig {
     };
     worldServer:
         | {
+              byServerName?: string;
               channelId: number;
           }
         | {

@@ -42,36 +42,58 @@ export function pickWorldServer(bot: NostaleBot, nstest: PacketNsTeST): [string,
     const worldServer = bot.config.worldServer;
 
     function conMsg(chan: PacketNsTeST_Channel) {
-        return `Connecting to WorldServer (${chan.ip}:${chan.port} CH:${chan.channelId})...`;
+        return `Connecting to WorldServer ${chan.name} CH:${chan.channelId} (${chan.ip}:${chan.port})...`;
     }
+
+    if ("ip" in worldServer && "port" in worldServer) {
+        const chan = nstest.channels.find(
+            (v) => v.ip === worldServer.ip && v.port === worldServer.port
+        );
+        if (chan) {
+            logger.info(conMsg(chan));
+            return [chan.ip, chan.port];
+        }
+        logger.info(`Connecting to WorldServer (${worldServer.ip}:${worldServer.port})...`);
+        return [worldServer.ip, worldServer.port];
+    }
+
+    const recommendedWorldId = nstest.channels.find(
+        (a) => worldServer.byServerName && a.name.startsWith(worldServer.byServerName)
+    );
 
     if ("channelId" in worldServer) {
         const pickChannelId = worldServer.channelId;
-        // pick channel by id
-        const foundChannel = nstest.channels.find((v) => v.channelId == pickChannelId);
 
-        if (foundChannel !== undefined) {
-            // conect using channel ID
-            logger.info(conMsg(foundChannel));
-            return [foundChannel.ip, foundChannel.port];
+        // pick channel by id
+        const channelList = nstest.channels.filter((v) => {
+            if (recommendedWorldId) {
+                return v.channelId == pickChannelId && v.worldId == recommendedWorldId.worldId;
+            }
+            return v.channelId == pickChannelId;
+        });
+        if (channelList.length > 1) {
+            const uniqueWorldNames = Array.from(new Set(channelList.map((a) => a.name)));
+            logger.error(
+                `Multiple channels with id ${pickChannelId} found. You should add worldServer.byServerName to the config\n
+                Posible servers: ${uniqueWorldNames.join(", ")}`
+            );
+            throw new Error(`Multiple channels with id ${pickChannelId} found. You should add worldServer.byServerName to the config\n
+            Posible servers: ${uniqueWorldNames.join(", ")}`);
+        }
+        if (channelList.length === 0) {
+            logger.error(`Channel with id ${pickChannelId} not found. Here is a list of all channels:\n
+            ${nstest.channels
+                .map((a) => `${a.worldId} ${a.name} Ch:${a.channelId} (${a.ip}:${a.port})`)
+                .join("\n")}`);
+            throw new Error(`Channel with id ${pickChannelId} not found`);
         }
 
-        // channel not found soo lista all channels and pick first
-        logger.warn(`Channel with id ${worldServer.channelId} not found`);
-
-        logger.info("Channels: ");
-        nstest.channels.forEach((c) => {
-            logger.info(`${c.channelId}. ${c.ip}:${c.port} ${c.worldId}.${c.name}`);
-        });
-
-        const firstChan = nstest.channels[0];
-        logger.info(conMsg(firstChan));
-        return [firstChan.ip, firstChan.port];
+        const foundChannel = channelList[0];
+        logger.info(conMsg(foundChannel));
+        return [foundChannel.ip, foundChannel.port];
     }
 
-    // connect using ip and port
-    logger.info(`Connecting to WorldServer (${worldServer.ip}:${worldServer.port})...`);
-    return [worldServer.ip, worldServer.port];
+    throw new Error("Unexpected error, check your config.worldServer settings");
 }
 
 /**
