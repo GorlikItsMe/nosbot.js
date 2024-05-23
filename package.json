@@ -1,6 +1,6 @@
 {
   "name": "@gorlikitsme/nosbot.js",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A node.js library for building Nostale Bot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
