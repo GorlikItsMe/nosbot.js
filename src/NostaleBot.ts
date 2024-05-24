@@ -6,6 +6,7 @@ import { parseNsTestPacket } from "./PacketHandler/nstest";
 import { TcpClientManager } from "./TcpClient/TcpClientManager";
 import { failcToString } from "./utils/failcToString";
 import { sleep } from "./utils/sleep";
+import { createWalkPacketsChain, getDistanceGridNostale } from "./modules/walk";
 
 const logger = createLogger("NostaleBot");
 
@@ -75,6 +76,10 @@ export class NostaleBot extends EventEmitter {
     currentCharacter = {
         name: "",
         id: 0,
+        mapId: -1,
+        x: -1,
+        y: -1,
+        speed: 16,
     };
 
     _sendMiddleware = (packet: string): string => packet;
@@ -176,6 +181,48 @@ export class NostaleBot extends EventEmitter {
         this.stopPulseThread();
     }
 
+    public async walkTo(x: number, y: number): Promise<void> {
+        /**
+         * Warning: You will go straight like trough walls, trees, etc.
+         * If you want to walk on the map, you need to implement some kind of pathfinding.
+         * This function is useful if you want to go to near NPC or correct your position efter relog.
+         */
+        if (this.currentCharacter.x == x && this.currentCharacter.y == y) {
+            return; // already there
+        }
+        while (this.currentCharacter.x == -1 || this.currentCharacter.y == -1) {
+            await sleep(100); // wait for position
+        }
+
+        // create chain of walk packets
+        const packets = createWalkPacketsChain(
+            {
+                x: this.currentCharacter.x,
+                y: this.currentCharacter.y,
+            },
+            {
+                x: x,
+                y: y,
+            },
+            this.currentCharacter.speed
+        );
+        let distanceLeft = 0;
+        for (const packet of packets) {
+            this.sendPacket(packet);
+            const distance =
+                getDistanceGridNostale(
+                    this.currentCharacter.x,
+                    this.currentCharacter.y,
+                    x,
+                    y
+                ) + distanceLeft;
+            const fixedDistance = Math.round(distance);
+            distanceLeft = distance - fixedDistance;
+            const speedFactor = 1000 * (fixedDistance / (0.4 * this.currentCharacter.speed));
+            await sleep(speedFactor);
+        }
+    }
+
     // obsługa pakietów przez bota
     // obsługa wewnętrzenej logiki, kim ja jestem, gdzie jestem, co widze itd żeby móc łatwo później odczytywać to używając api bota
     private internalPacketHandle(packet: string) {
@@ -201,10 +248,23 @@ export class NostaleBot extends EventEmitter {
         if (packet.startsWith("c_info ")) {
             // c_info Killrog - -1 1.918 FamilyName 14187 2 0 0 2 3 14 500 0 0 20 0 0 0 0
             const p = packet.split(" ");
-            this.currentCharacter = {
-                name: p[1],
-                id: parseInt(p[6]),
-            };
+            this.currentCharacter.id = parseInt(p[6]);
+            this.currentCharacter.name = p[1];
+        }
+        if (packet.startsWith("cond")) {
+            const p = packet.split(" ");
+            if (p[2] == this.currentCharacter.id.toString()) {
+                this.currentCharacter.speed = parseInt(p[5]);
+            }
+        }
+        if (packet.startsWith("at")) {
+            const p = packet.split(" ");
+
+            if (p[1] == this.currentCharacter.id.toString()) {
+                this.currentCharacter.mapId = parseInt(p[2]);
+                this.currentCharacter.x = parseInt(p[3]);
+                this.currentCharacter.y = parseInt(p[4]);
+            }
         }
     }
 
