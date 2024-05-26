@@ -55,7 +55,7 @@ export default class DecryptWorldStream extends Transform {
 
         // save not fully recived packet for future
         if (index > this.state.index) {
-            const temp = packet.slice(this.state.index);
+            const temp = Buffer.from(currentEncryptedPacket);
             this.state.buffer = temp;
             this.state.length = temp.length;
         }
