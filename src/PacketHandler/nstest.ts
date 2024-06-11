@@ -18,7 +18,7 @@ export function parseNsTestPacket(packet: string): PacketNsTeST {
 
     const p = packet.split(" ");
     const name = p[2];
-    const sessionIdPosition = 76;
+    const sessionIdPosition = 124;
     const sessionId = parseInt(p[sessionIdPosition]);
     const channels = p.slice(sessionIdPosition + 1, -1);
     return {
