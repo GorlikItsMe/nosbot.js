@@ -2,7 +2,8 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import { NostaleBot, NostaleEmoji } from "@gorlikitsme/nosbot.js";
+// import { NostaleBot, NostaleEmoji } from "@gorlikitsme/nosbot.js";
+import { NostaleBot, NostaleEmoji } from "../src/index";
 const bot = new NostaleBot({
     auth: {
         type: "priv",
@@ -38,4 +39,7 @@ bot.on("in", (packet) => {
         bot.useEmoji(NostaleEmoji.AltW);
     }
 });
-bot.login();
+bot.login().catch((err) => {
+    console.log("bot crashed");
+    console.error(err);
+});
