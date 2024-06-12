@@ -269,6 +269,7 @@ export class NostaleBot extends EventEmitter {
     }
 
     private startPulseThread() {
+        logger.debug("Starting pulse thread");
         let pulseSek = 60;
         this.pulseInterval = setInterval(() => {
             this.sendPacket(`pulse ${pulseSek}`);
@@ -276,6 +277,7 @@ export class NostaleBot extends EventEmitter {
         }, 60000);
     }
     private stopPulseThread() {
+        logger.debug("Stopping pulse thread");
         clearInterval(this.pulseInterval);
     }
 }

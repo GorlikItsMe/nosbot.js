@@ -51,12 +51,12 @@ export class TcpClientManager {
                 (err) => {
                     if (err) {
                         logger.error("Pipeline failed.");
-                        logger.error(err);
+                        logger.debug(err);
                     } else {
                         logger.info("Pipeline succeeded.");
                     }
+                    this.destroy();
                     logger.info("Game closed because stream pipeline closed.");
-                    this.client.destroy();
                 }
             );
 
@@ -71,6 +71,10 @@ export class TcpClientManager {
 
     // close connection
     public destroy(): void {
+        if (this._pipeline?.isPaused()) {
+            return;
+        }
+        this._pipeline?.pause();
         this._pipeline?.end(() => {
             this.client.end();
         });
