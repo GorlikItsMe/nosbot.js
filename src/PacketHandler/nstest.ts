@@ -18,10 +18,19 @@ export function parseNsTestPacket(packet: string): PacketNsTeST {
 
     const p = packet.split(" ");
     const name = p[2];
-    const sessionIdPosition = 124;
+
+    // dynamic finding sessionId position
+    // find first part where is ip (contains ':')
+    const ipPosition = p.findIndex((a) => a.includes(":"));
+    if (ipPosition == -1) {
+        throw new Error("No ip found (probably invalid NsTest packet)");
+    }
+    const sessionIdPosition = ipPosition - 1;
+    // const sessionIdPosition = 124;
     const sessionId = parseInt(p[sessionIdPosition]);
+
     const channels = p.slice(sessionIdPosition + 1, -1);
-    return {
+    const out = {
         name: name,
         sessionId: sessionId,
         channels: channels.map((a) => {
@@ -37,4 +46,11 @@ export function parseNsTestPacket(packet: string): PacketNsTeST {
             };
         }),
     };
+    if (typeof out.sessionId !== "number" || isNaN(out.sessionId)) {
+        throw new Error("No sessionId found (probably invalid NsTest packet)");
+    }
+    if (out.channels.length == 0) {
+        throw new Error("No channels found");
+    }
+    return out;
 }
