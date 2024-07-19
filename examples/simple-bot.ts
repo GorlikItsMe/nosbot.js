@@ -39,6 +39,20 @@ bot.on("in", (packet) => {
         bot.useEmoji(NostaleEmoji.AltW);
     }
 });
+
+/** Close bot when see alt+s emoji */
+bot.on("eff", (packet) => {
+    const p = packet.split(" ");
+    if (p[1] == "1" && p[3] == "5083") {
+        bot.close();
+    }
+});
+
+/** Catch all recived packets */
+// bot.on("packet_recv", (packet) => {
+//     console.log("recv:", packet);
+// });
+
 bot.login().catch((err) => {
     console.log("bot crashed");
     console.error(err);
