@@ -16,7 +16,7 @@ export function createCipher(session?: number): EncryptLoginStream {
     );
 }
 
-export function createDecipher(session?: number): DecryptLoginStream {
+export function createDecipher(session?: number): DecryptLoginStream | DecryptWorldStream {
     if (session == null) {
         return new DecryptLoginStream();
     } else if (Number.isFinite(session)) {

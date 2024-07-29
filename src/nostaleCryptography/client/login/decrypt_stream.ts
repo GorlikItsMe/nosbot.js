@@ -10,7 +10,7 @@ function decrypt(packet: Buffer): Buffer {
 }
 
 export default class DecryptLoginStream extends Transform {
-    state: {
+    private state: {
         index: number;
         buffer: null | Buffer;
         length: number;

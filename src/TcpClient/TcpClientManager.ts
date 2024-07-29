@@ -7,6 +7,7 @@ import EncryptLoginStream from "../nostaleCryptography/client/login/encrypt_stre
 import DecryptLoginStream from "../nostaleCryptography/client/login/decrypt_stream";
 import { createLogger } from "../logger";
 import { PacketHandler } from "../PacketHandler/PacketHandler";
+import DecryptWorldStream from "../nostaleCryptography/client/world/decrypt_stream";
 
 const logger = createLogger("TcpClientManager");
 
@@ -18,7 +19,7 @@ export class TcpClientManager {
     private client: PromiseSocket<Net.Socket>;
     private _pipeline: NodeJS.ReadWriteStream | undefined;
     private encryptStream: EncryptLoginStream;
-    private decryptStream: DecryptLoginStream;
+    private decryptStream: DecryptLoginStream | DecryptWorldStream;
     private encodingStream: NodeJS.ReadWriteStream;
     private decodingStream: NodeJS.ReadWriteStream;
 
