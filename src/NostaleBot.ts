@@ -101,6 +101,13 @@ export class NostaleBot extends EventEmitter {
         await this.tcpClient.connect(loginServer.ip, loginServer.port);
         logger.info(`Connected!`);
 
+        // setup packet handler for login server packets (used only to catch failc and NsTeST)
+        this.tcpClient.packetHandler.on("packet_recv", (packetraw: string) => {
+            const p = packetraw.split(" ", 1);
+            this.emit("packet_recv", packetraw);
+            this.emit(p[0], packetraw);
+        });
+
         // send login packet
         sendLoginPacket(this);
 
