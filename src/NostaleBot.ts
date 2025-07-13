@@ -91,7 +91,9 @@ export class NostaleBot extends EventEmitter {
     }
 
     // Main method to start bot
-    public async login(): Promise<void> {
+    public async login(): Promise<
+        { success: true } | { success: false; failcPacket: string; failcMessage: string }
+    > {
         this.currentStage = "auth";
 
         // connect to login server
@@ -118,7 +120,11 @@ export class NostaleBot extends EventEmitter {
             this.tcpClient.destroy(); // close
             logger.debug(`${nstestPacket}`); // error failc
             logger.error(failcToString(nstestPacket));
-            return;
+            return {
+                success: false,
+                failcPacket: nstestPacket,
+                failcMessage: failcToString(nstestPacket),
+            };
         }
         this.tcpClient.destroy(); // close
 
@@ -169,6 +175,10 @@ export class NostaleBot extends EventEmitter {
             this.sendPacket("c_close 1");
             this.sendPacket("npinfo 0");
         });
+
+        return {
+            success: true,
+        };
     }
 
     public setSendMiddleware(fn: (packet: string) => string): void {
